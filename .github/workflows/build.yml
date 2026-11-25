@@ -1,0 +1,106 @@
+# Збирає DevBridge для Windows, macOS і Linux.
+#
+#   push у main або pull request  -> файли доступні в Actions → запуск → Artifacts
+#   тег v1.2.3                    -> ще й сторінка Releases з цими файлами
+#   кнопка "Run workflow"         -> збірка вручну
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# новий push скасовує попередню незавершену збірку тієї самої гілки
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      # помилка на одній платформі не зупиняє інші
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows
+            runner: windows-latest
+            flag: --win
+            files: |
+              dist/DevBridge-Installer-*.exe
+              dist/DevBridge-*-portable.exe
+          - name: macOS
+            runner: macos-latest
+            flag: --mac
+            files: dist/*.dmg
+          - name: Linux
+            runner: ubuntu-latest
+            flag: --linux
+            files: dist/*.AppImage
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm test
+
+      - name: Build
+        run: npx electron-builder ${{ matrix.flag }} --publish never
+        env:
+          # без цього ad-hoc підпис для macOS пропускається в pull request
+          CSC_FOR_PULL_REQUEST: 'true'
+
+      # власне вікно інсталятора (installer/GUIDE.md)
+      - name: Build custom Windows installer
+        if: matrix.name == 'Windows'
+        run: node installer/build.js
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: DevBridge-${{ matrix.name }}
+          path: ${{ matrix.files }}
+          if-no-files-found: error
+          # файли великі, тому довго не зберігаємо; для постійних версій є Releases
+          retention-days: 7
+          compression-level: 0
+
+  release:
+    name: Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check that the tag matches package.json
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Тег $GITHUB_REF_NAME не збігається з версією $version у package.json"
+            exit 1
+          fi
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: release
+          merge-multiple: true
+
+      - name: Create GitHub release
+        run: gh release create "$GITHUB_REF_NAME" release/* --title "DevBridge $GITHUB_REF_NAME" --generate-notes --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}

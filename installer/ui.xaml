@@ -1,0 +1,346 @@
+<!--
+  Вигляд інсталятора. Тут тільки дизайн: кольори, стилі, розмітка.
+  Логіка лежить в Installer.cs і знаходить елементи за x:Name,
+  тому імена не змінюйте (або змінюйте одразу в обох файлах).
+  Обробники подій (Click="...") тут писати не можна: файл читається під час запуску.
+-->
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Встановлення DevBridge"
+        Width="760" Height="620"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="14"
+        TextOptions.TextFormattingMode="Ideal" UseLayoutRounding="True">
+
+  <Window.Resources>
+    <!-- Кольори взяті з темної теми програми (src/renderer/styles.css) -->
+    <SolidColorBrush x:Key="Bg" Color="#10141F"/>
+    <SolidColorBrush x:Key="Panel" Color="#161B29"/>
+    <SolidColorBrush x:Key="Raised" Color="#1E2435"/>
+    <SolidColorBrush x:Key="Line" Color="#283047"/>
+    <SolidColorBrush x:Key="Text" Color="#E4E8F2"/>
+    <SolidColorBrush x:Key="Muted" Color="#8B93AB"/>
+    <SolidColorBrush x:Key="Live" Color="#4FD1C5"/>
+    <SolidColorBrush x:Key="Warn" Color="#F2D06B"/>
+    <SolidColorBrush x:Key="Fail" Color="#FF7A7A"/>
+    <SolidColorBrush x:Key="Signal" Color="#FF9F43"/>
+    <SolidColorBrush x:Key="SignalHover" Color="#FFB067"/>
+    <SolidColorBrush x:Key="SignalInk" Color="#2A1600"/>
+
+    <LinearGradientBrush x:Key="Wire" StartPoint="130,0" EndPoint="590,0" MappingMode="Absolute">
+      <GradientStop Offset="0" Color="#4FD1C5"/>
+      <GradientStop Offset="0.5" Color="#B9C98A"/>
+      <GradientStop Offset="1" Color="#FF9F43"/>
+    </LinearGradientBrush>
+
+    <Style x:Key="Heading" TargetType="TextBlock">
+      <Setter Property="FontFamily" Value="Segoe UI Variable Display, Segoe UI"/>
+      <Setter Property="FontSize" Value="24"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="{StaticResource Text}"/>
+    </Style>
+    <Style x:Key="Sub" TargetType="TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+      <Setter Property="LineHeight" Value="21"/>
+    </Style>
+
+    <!-- кільце фокуса для керування з клавіатури -->
+    <Style x:Key="Focus">
+      <Setter Property="Control.Template">
+        <Setter.Value>
+          <ControlTemplate>
+            <Rectangle Margin="-3" RadiusX="9" RadiusY="9" Stroke="#FF9F43" StrokeThickness="2"/>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- звичайна кнопка -->
+    <Style x:Key="Btn" TargetType="Button">
+      <Setter Property="Foreground" Value="{StaticResource Text}"/>
+      <Setter Property="Background" Value="{StaticResource Raised}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
+      <Setter Property="Height" Value="40"/>
+      <Setter Property="Padding" Value="18,0"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{StaticResource Focus}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Box" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Box" Property="BorderBrush" Value="#8B93AB"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Box" Property="Opacity" Value="0.8"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Box" Property="Opacity" Value="0.4"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- головна (помаранчева) кнопка -->
+    <Style x:Key="Primary" TargetType="Button" BasedOn="{StaticResource Btn}">
+      <Setter Property="Background" Value="{StaticResource Signal}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource Signal}"/>
+      <Setter Property="Foreground" Value="{StaticResource SignalInk}"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="MinWidth" Value="168"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Box" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Box" Property="Background" Value="#FFB067"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Box" Property="Opacity" Value="0.85"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Box" Property="Opacity" Value="0.4"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- кнопки в заголовку вікна -->
+    <Style x:Key="Chrome" TargetType="Button">
+      <Setter Property="Width" Value="44"/>
+      <Setter Property="Height" Value="32"/>
+      <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+      <Setter Property="FocusVisualStyle" Value="{StaticResource Focus}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Box" Background="Transparent" CornerRadius="6">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Box" Property="Background" Value="#1E2435"/>
+                <Setter Property="Foreground" Value="#E4E8F2"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Box" Property="Opacity" Value="0.3"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- перемикач замість квадратної галочки -->
+    <Style x:Key="Switch" TargetType="CheckBox">
+      <Setter Property="Foreground" Value="{StaticResource Text}"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{StaticResource Focus}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="CheckBox">
+            <StackPanel Orientation="Horizontal" Background="Transparent">
+              <Border x:Name="Track" Width="38" Height="22" CornerRadius="11" Background="#283047">
+                <Ellipse x:Name="Knob" Width="16" Height="16" Fill="White" HorizontalAlignment="Left" Margin="3,0,0,0"/>
+              </Border>
+              <ContentPresenter Margin="10,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Track" Property="Background" Value="#FF9F43"/>
+                <Setter TargetName="Knob" Property="Margin" Value="19,0,0,0"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+  </Window.Resources>
+
+  <!-- Margin залишає місце під тінь навколо вікна -->
+  <Grid x:Name="Root" Margin="20">
+    <Border CornerRadius="16" Background="{StaticResource Bg}">
+      <Border.Effect>
+        <DropShadowEffect BlurRadius="24" ShadowDepth="6" Direction="270" Opacity="0.45" Color="#000000"/>
+      </Border.Effect>
+    </Border>
+
+    <Border CornerRadius="16" BorderBrush="{StaticResource Line}" BorderThickness="1">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="48"/>
+          <RowDefinition Height="196"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ===== заголовок вікна (за нього вікно можна тягати) ===== -->
+        <Grid x:Name="TitleBar" Grid.Row="0" Background="Transparent">
+          <StackPanel Orientation="Horizontal" Margin="20,0,0,0" VerticalAlignment="Center">
+            <Image x:Name="Logo" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+            <TextBlock Text="DevBridge" Margin="10,0,0,0" FontWeight="SemiBold" Foreground="{StaticResource Text}" VerticalAlignment="Center"/>
+            <TextBlock x:Name="VersionText" Margin="8,0,0,0" FontSize="12" Foreground="{StaticResource Muted}" VerticalAlignment="Center"/>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,8,0" VerticalAlignment="Center">
+            <Button x:Name="MinButton" Style="{StaticResource Chrome}" ToolTip="Згорнути">
+              <Path Data="M0,0 L10,0" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.4"/>
+            </Button>
+            <Button x:Name="CloseButton" Style="{StaticResource Chrome}" ToolTip="Закрити">
+              <Path Data="M0,0 L10,10 M10,0 L0,10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.4"/>
+            </Button>
+          </StackPanel>
+        </Grid>
+
+        <!-- ===== міст: той самий мотив, що й на іконці ===== -->
+        <Viewbox Grid.Row="1" Stretch="Uniform">
+          <Canvas Width="720" Height="196">
+            <!-- м'яке світіння під вузлами -->
+            <Ellipse Canvas.Left="40" Canvas.Top="60" Width="180" Height="160">
+              <Ellipse.Fill>
+                <RadialGradientBrush><GradientStop Color="#334FD1C5" Offset="0"/><GradientStop Color="#004FD1C5" Offset="1"/></RadialGradientBrush>
+              </Ellipse.Fill>
+            </Ellipse>
+            <Ellipse x:Name="SignalGlow" Canvas.Left="500" Canvas.Top="60" Width="180" Height="160">
+              <Ellipse.Fill>
+                <RadialGradientBrush><GradientStop Color="#40FF9F43" Offset="0"/><GradientStop Color="#00FF9F43" Offset="1"/></RadialGradientBrush>
+              </Ellipse.Fill>
+            </Ellipse>
+
+            <!-- підвіси -->
+            <Path Stroke="#52E4E8F2" StrokeThickness="2.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                  Data="M222,82 V136 M291,58 V136 M360,50 V136 M429,58 V136 M498,82 V136"/>
+            <!-- полотно та арка -->
+            <Path Data="M130,140 H590" Stroke="{StaticResource Wire}" StrokeThickness="4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Opacity="0.55"/>
+            <Path x:Name="Arc" Data="M130,140 Q360,-40 590,140" Stroke="{StaticResource Wire}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+
+            <!-- вузли -->
+            <Ellipse Canvas.Left="116" Canvas.Top="126" Width="28" Height="28" Fill="#131A31" Stroke="{StaticResource Live}" StrokeThickness="6"/>
+            <Ellipse x:Name="SignalNode" Canvas.Left="573" Canvas.Top="123" Width="34" Height="34" Fill="#131A31" Stroke="{StaticResource Signal}" StrokeThickness="11"/>
+
+            <TextBlock Canvas.Left="80" Canvas.Top="164" Width="100" TextAlignment="Center" Text="localhost" FontFamily="Cascadia Mono, Consolas" FontSize="12" Foreground="{StaticResource Muted}"/>
+            <TextBlock Canvas.Left="540" Canvas.Top="164" Width="100" TextAlignment="Center" Text="телефон" FontFamily="Cascadia Mono, Consolas" FontSize="12" Foreground="{StaticResource Muted}"/>
+
+            <!-- пакет даних: Installer.cs рухає його по арці -->
+            <Ellipse x:Name="Packet" Canvas.Left="-7" Canvas.Top="-7" Width="14" Height="14" Fill="#FFF4E6">
+              <Ellipse.RenderTransform>
+                <TranslateTransform x:Name="PacketMove" X="429" Y="58"/>
+              </Ellipse.RenderTransform>
+              <Ellipse.Effect>
+                <DropShadowEffect BlurRadius="16" ShadowDepth="0" Color="#FF9F43" Opacity="1"/>
+              </Ellipse.Effect>
+            </Ellipse>
+          </Canvas>
+        </Viewbox>
+
+        <!-- ===== екрани: показується тільки один ===== -->
+        <Grid Grid.Row="2" Margin="56,12,56,32">
+
+          <!-- 1. Налаштування встановлення -->
+          <Grid x:Name="WelcomePage">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0">
+              <TextBlock x:Name="WelcomeTitle" Style="{StaticResource Heading}" Text="Встановити DevBridge"/>
+              <TextBlock Style="{StaticResource Sub}" Margin="0,4,0,0" Text="Публічна адреса для локального сервера, інспектор запитів і QR для телефона."/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Margin="0,18,0,0">
+              <TextBlock Text="Тека встановлення" FontSize="13" Foreground="{StaticResource Text}" Margin="0,0,0,6"/>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Border x:Name="PathBox" Height="40" CornerRadius="8" Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}" BorderThickness="1">
+                  <TextBox x:Name="PathInput" Margin="10,0" VerticalAlignment="Center" Background="Transparent" BorderThickness="0"
+                           Foreground="{StaticResource Text}" CaretBrush="{StaticResource Text}" SelectionBrush="{StaticResource Signal}"
+                           FontFamily="Cascadia Mono, Consolas" FontSize="12.5"/>
+                </Border>
+                <Button x:Name="BrowseButton" Grid.Column="1" Margin="8,0,0,0" Style="{StaticResource Btn}" Content="Змінити…"/>
+              </Grid>
+              <!-- підказка або помилка щодо шляху -->
+              <TextBlock x:Name="PathHint" Margin="0,6,0,0" FontSize="12" Height="34" TextWrapping="Wrap" Foreground="{StaticResource Muted}"/>
+              <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                <CheckBox x:Name="DesktopSwitch" Style="{StaticResource Switch}" IsChecked="True" Content="Ярлик на робочому столі"/>
+                <CheckBox x:Name="LaunchSwitch" Style="{StaticResource Switch}" IsChecked="True" Content="Запустити після встановлення" Margin="28,0,0,0"/>
+              </StackPanel>
+            </StackPanel>
+
+            <Grid Grid.Row="3">
+              <TextBlock x:Name="SpaceText" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource Muted}"/>
+              <Button x:Name="InstallButton" HorizontalAlignment="Right" Style="{StaticResource Primary}" Content="Встановити" IsDefault="True"/>
+            </Grid>
+          </Grid>
+
+          <!-- 2. Хід встановлення -->
+          <StackPanel x:Name="ProgressPage" Visibility="Collapsed" VerticalAlignment="Center" Margin="0,0,0,24">
+            <TextBlock Style="{StaticResource Heading}" Text="Встановлюємо DevBridge" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="StageText" Style="{StaticResource Sub}" Margin="0,8,0,0" HorizontalAlignment="Center" TextAlignment="Center"/>
+            <!-- NSIS у тихому режимі не повідомляє відсотки, тому смуга лише показує, що робота триває -->
+            <Border Width="420" Height="6" Margin="0,24,0,0" CornerRadius="3" Background="{StaticResource Raised}">
+              <Canvas ClipToBounds="True">
+                <Rectangle Width="140" Height="6" RadiusX="3" RadiusY="3" Fill="{StaticResource Signal}">
+                  <Rectangle.RenderTransform>
+                    <TranslateTransform X="140"/>
+                  </Rectangle.RenderTransform>
+                  <Rectangle.Triggers>
+                    <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                      <BeginStoryboard>
+                        <Storyboard>
+                          <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                           From="-140" To="420" Duration="0:0:1.4" RepeatBehavior="Forever"/>
+                        </Storyboard>
+                      </BeginStoryboard>
+                    </EventTrigger>
+                  </Rectangle.Triggers>
+                </Rectangle>
+              </Canvas>
+            </Border>
+            <TextBlock Style="{StaticResource Sub}" Margin="0,16,0,0" HorizontalAlignment="Center" FontSize="12" Text="Зазвичай це триває менше хвилини. Не вимикайте комп’ютер."/>
+          </StackPanel>
+
+          <!-- 3. Готово -->
+          <Grid x:Name="DonePage" Visibility="Collapsed">
+            <StackPanel VerticalAlignment="Center" Margin="0,0,0,48">
+              <TextBlock Style="{StaticResource Heading}" Text="Міст готовий" HorizontalAlignment="Center"/>
+              <TextBlock x:Name="DoneText" Style="{StaticResource Sub}" Margin="0,8,0,0" HorizontalAlignment="Center" TextAlignment="Center"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+              <Button x:Name="DoneCloseButton" Style="{StaticResource Btn}" Content="Закрити"/>
+              <Button x:Name="LaunchButton" Margin="8,0,0,0" Style="{StaticResource Primary}" Content="Запустити DevBridge"/>
+            </StackPanel>
+          </Grid>
+
+          <!-- 4. Помилка -->
+          <Grid x:Name="ErrorPage" Visibility="Collapsed">
+            <StackPanel VerticalAlignment="Center" Margin="0,0,0,48">
+              <TextBlock Style="{StaticResource Heading}" Text="Не вдалося встановити" HorizontalAlignment="Center"/>
+              <TextBlock x:Name="ErrorText" Style="{StaticResource Sub}" Margin="0,8,0,0" HorizontalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource Fail}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+              <Button x:Name="ErrorCloseButton" Style="{StaticResource Btn}" Content="Закрити"/>
+              <Button x:Name="RetryButton" Margin="8,0,0,0" Style="{StaticResource Primary}" Content="Спробувати ще раз"/>
+            </StackPanel>
+          </Grid>
+        </Grid>
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

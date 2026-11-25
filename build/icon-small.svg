@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#26305a"/>
+      <stop offset="1" stop-color="#0f1428"/>
+    </linearGradient>
+    <linearGradient id="wire" x1="190" y1="0" x2="834" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4fd1c5"/>
+      <stop offset="1" stop-color="#ff9f43"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="992" height="992" rx="200" fill="url(#bg)"/>
+  <g stroke="#e4e8f2" stroke-opacity=".55" stroke-width="44" stroke-linecap="round">
+    <path d="M512 330 V640"/>
+    <path d="M370 420 V640"/>
+    <path d="M654 420 V640"/>
+  </g>
+  <path d="M190 700 Q512 -40 834 700" fill="none" stroke="url(#wire)" stroke-width="76" stroke-linecap="round"/>
+  <path d="M190 700 H834" stroke="url(#wire)" stroke-width="56" stroke-linecap="round"/>
+  <circle cx="190" cy="700" r="86" fill="#131a31" stroke="#4fd1c5" stroke-width="56"/>
+  <circle cx="834" cy="700" r="112" fill="#ff9f43"/>
+  <circle cx="834" cy="700" r="40" fill="#131a31"/>
+</svg>

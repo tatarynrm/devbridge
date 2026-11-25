@@ -1,0 +1,108 @@
+{
+  "name": "devbridge",
+  "productName": "DevBridge",
+  "version": "1.1.0",
+  "description": "Публічний URL для локального сервера: Cloudflare, власний relay або локальна мережа. Інспектор запитів і QR для телефона.",
+  "main": "src/main/main.js",
+  "author": "Noris",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "test": "node test/e2e.js",
+    "relay": "node server/relay-server.js",
+    "dist": "electron-builder",
+    "dist:installer": "electron-builder --win nsis --x64 && node installer/build.js",
+    "installer:preview": "node installer/build.js --preview",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "dist:linux": "electron-builder --linux"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4",
+    "ws": "^8.23.0"
+  },
+  "devDependencies": {
+    "electron": "^45.5.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.noris.devbridge",
+    "productName": "DevBridge",
+    "copyright": "© 2026 Noris",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "shared/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "executableName": "DevBridge"
+    },
+    "nsis": {
+      "guid": "6794a1a5-ee31-5faa-8597-69c5ddb8d9da",
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "DevBridge",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerLanguages": [
+        "uk_UA"
+      ],
+      "language": "1058",
+      "artifactName": "DevBridge-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "DevBridge-${version}-portable.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.developer-tools",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "artifactName": "DevBridge-${version}-mac-${arch}.${ext}"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "Development",
+      "artifactName": "DevBridge-${version}-linux-${arch}.${ext}"
+    }
+  }
+}

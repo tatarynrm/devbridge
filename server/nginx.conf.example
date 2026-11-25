@@ -1,0 +1,45 @@
+# Варіант для VPS, де вже працює nginx на 80/443.
+# 1) DNS: A-записи t.example.com і *.t.example.com → IP сервера
+# 2) Wildcard-сертифікат (потрібен DNS-challenge), наприклад через Cloudflare DNS:
+#      apt install certbot python3-certbot-dns-cloudflare
+#      certbot certonly --dns-cloudflare --dns-cloudflare-credentials /root/.cf.ini \
+#        -d t.example.com -d '*.t.example.com'
+#    або вручну: certbot certonly --manual --preferred-challenges dns -d t.example.com -d '*.t.example.com'
+# 3) Relay слухає лише localhost:  HOST=127.0.0.1 PORT=7000 (див. devbridge-relay.service)
+
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen 80;
+    server_name t.example.com *.t.example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name t.example.com *.t.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/t.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/t.example.com/privkey.pem;
+
+    client_max_body_size 0;
+
+    location / {
+        proxy_pass http://127.0.0.1:7000;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header Upgrade           $http_upgrade;
+        proxy_set_header Connection        $connection_upgrade;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host  $host;
+        proxy_buffering off;
+        proxy_request_buffering off;
+        proxy_read_timeout 1h;
+        proxy_send_timeout 1h;
+    }
+}

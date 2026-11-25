@@ -1,0 +1,6 @@
+# однакові кінці рядків на Windows, macOS і Linux
+* text=auto eol=lf
+
+*.png binary
+*.ico binary
+*.woff2 binary

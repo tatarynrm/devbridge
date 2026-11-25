@@ -1,0 +1,22 @@
+# On-demand TLS: сертифікат видається при першому HTTPS-запиті на субдомен,
+# але лише якщо relay підтвердить, що такий субдомен існує (ask).
+# DNS: A-записи для t.example.com і *.t.example.com → IP вашого VPS.
+{
+	email {$ACME_EMAIL}
+	on_demand_tls {
+		ask http://relay:7000/_devbridge/check
+	}
+}
+
+https:// {
+	tls {
+		on_demand
+	}
+	reverse_proxy relay:7000 {
+		flush_interval -1
+	}
+}
+
+http:// {
+	redir https://{host}{uri} permanent
+}

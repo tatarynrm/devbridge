@@ -1,0 +1,24 @@
+# Запуск без Docker (за nginx). Код — у /opt/devbridge (папки server/ і shared/).
+#   cd /opt/devbridge/server && npm install --omit=dev
+#   cp devbridge-relay.service /etc/systemd/system/ && systemctl enable --now devbridge-relay
+[Unit]
+Description=DevBridge relay
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/devbridge/server
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=7000
+Environment=BASE_DOMAIN=t.example.com
+Environment=TOKEN=change-me
+ExecStart=/usr/bin/node relay-server.js
+Restart=always
+RestartSec=3
+DynamicUser=yes
+StateDirectory=devbridge
+Environment=DATA_DIR=/var/lib/devbridge
+
+[Install]
+WantedBy=multi-user.target

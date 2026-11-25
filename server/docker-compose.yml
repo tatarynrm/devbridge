@@ -1,0 +1,32 @@
+# Чистий VPS: Caddy сам отримує HTTPS-сертифікати для кожного субдомену.
+#   cp .env.example .env && nano .env && docker compose up -d
+services:
+  relay:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    environment:
+      BASE_DOMAIN: ${BASE_DOMAIN:?вкажіть BASE_DOMAIN у .env}
+      TOKEN: ${TOKEN:?вкажіть TOKEN у .env}
+    volumes:
+      - relay-data:/app/server/data
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [relay]
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL:?вкажіть ACME_EMAIL у .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  relay-data:
+  caddy-data:
+  caddy-config:
