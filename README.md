@@ -40,7 +40,7 @@ npm run dist:installer
 | macOS | `DevBridge-<версія>-mac-arm64.dmg` (Apple Silicon), `...-mac-x64.dmg` (Intel) |
 | Linux x64 | `DevBridge-<версія>-linux-x86_64.AppImage` |
 
-- **push у `main`** або pull request: тести й збірка. Файли лежать у **Actions → потрібний запуск → Artifacts** і зберігаються 7 днів.
+- **push у `main`** або pull request: тести й збірка. Файли лежать у **Actions → потрібний запуск → Artifacts**, кожен завантажується окремо, без ZIP, і зберігається 7 днів.
 - **Кнопка Run workflow** на вкладці Actions: збірка вручну.
 - **Тег `v…`**: додатково створюється сторінка в **Releases** з усіма файлами.
 

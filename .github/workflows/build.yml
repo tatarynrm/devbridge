@@ -29,21 +29,22 @@ jobs:
       # помилка на одній платформі не зупиняє інші
       fail-fast: false
       matrix:
+        # file1 і file2: кожен шаблон має збігатися рівно з одним файлом
         include:
           - name: Windows
             runner: windows-latest
             flag: --win
-            files: |
-              dist/DevBridge-Installer-*.exe
-              dist/DevBridge-*-portable.exe
+            file1: dist/DevBridge-Installer-*.exe
+            file2: dist/DevBridge-*-portable.exe
           - name: macOS
             runner: macos-latest
             flag: --mac
-            files: dist/*.dmg
+            file1: dist/DevBridge-*-mac-arm64.dmg
+            file2: dist/DevBridge-*-mac-x64.dmg
           - name: Linux
             runner: ubuntu-latest
             flag: --linux
-            files: dist/*.AppImage
+            file1: dist/DevBridge-*-linux-*.AppImage
 
     steps:
       - uses: actions/checkout@v7
@@ -68,14 +69,23 @@ jobs:
         if: matrix.name == 'Windows'
         run: node installer/build.js
 
+      # archive: false віддає файл як є, без ZIP. У цьому режимі один крок
+      # завантажує лише один файл, а назвою artifact стає назва файлу.
+      # Зберігаємо недовго, бо файли великі; для постійних версій є Releases.
       - uses: actions/upload-artifact@v7
         with:
-          name: DevBridge-${{ matrix.name }}
-          path: ${{ matrix.files }}
+          path: ${{ matrix.file1 }}
+          archive: false
           if-no-files-found: error
-          # файли великі, тому довго не зберігаємо; для постійних версій є Releases
           retention-days: 7
-          compression-level: 0
+
+      - uses: actions/upload-artifact@v7
+        if: matrix.file2
+        with:
+          path: ${{ matrix.file2 }}
+          archive: false
+          if-no-files-found: error
+          retention-days: 7
 
   release:
     name: Release
@@ -99,6 +109,17 @@ jobs:
         with:
           path: release
           merge-multiple: true
+
+      # не створюємо реліз, якщо якогось із файлів бракує
+      - name: Check release files
+        run: |
+          ls -l release
+          for pattern in 'DevBridge-Installer-*.exe' 'DevBridge-*-portable.exe' 'DevBridge-*-mac-arm64.dmg' 'DevBridge-*-mac-x64.dmg' 'DevBridge-*-linux-*.AppImage'; do
+            if ! compgen -G "release/$pattern" > /dev/null; then
+              echo "::error::У релізі немає файлу $pattern"
+              exit 1
+            fi
+          done
 
       - name: Create GitHub release
         run: gh release create "$GITHUB_REF_NAME" release/* --title "DevBridge $GITHUB_REF_NAME" --generate-notes --verify-tag
